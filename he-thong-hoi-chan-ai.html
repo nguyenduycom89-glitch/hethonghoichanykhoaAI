@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Hội Chẩn AI - Khoa Học Lớp 4 (TT27)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; flex-direction: column; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; flex: 1; width: 100%; }
+        
+        /* Header & AI Doctor */
+        .header { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 20px; padding: 30px; text-align: center; color: white; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .ai-doctor-container { background: white; border-radius: 20px; padding: 30px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 30px; }
+        .ai-doctor { flex: 0 0 250px; text-align: center; }
+        .ai-doctor-img { width: 200px; height: 200px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 100px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .ai-doctor h3 { color: #667eea; margin-top: 15px; font-size: 1.5em; }
+        .ai-doctor-info { flex: 1; background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); padding: 20px; border-radius: 15px; }
+
+        /* Navigation */
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; }
+        .nav-tab { flex: 1; min-width: 150px; padding: 15px 25px; background: white; border: none; border-radius: 15px; cursor: pointer; font-size: 1em; font-weight: bold; color: #667eea; transition: all 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .nav-tab:hover, .nav-tab.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; transform: translateY(-3px); }
+
+        /* Content Sections */
+        .content-section { display: none; background: white; border-radius: 20px; padding: 30px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .content-section.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .section-title { color: #667eea; font-size: 1.8em; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 3px solid #f093fb; }
+
+        /* Forms & Inputs */
+        .upload-area { border: 3px dashed #667eea; border-radius: 15px; padding: 40px; text-align: center; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); cursor: pointer; transition: all 0.3s; margin-bottom: 20px; }
+        .upload-area:hover { border-color: #f5576c; transform: scale(1.02); }
+        .scenario-form { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); padding: 25px; border-radius: 15px; margin-bottom: 20px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; color: #2d3436; font-weight: bold; margin-bottom: 8px; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 1em; transition: border 0.3s; }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #667eea; }
+        
+        /* Buttons */
+        .btn { padding: 12px 30px; border: none; border-radius: 10px; cursor: pointer; font-size: 1em; font-weight: bold; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-success { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; }
+        .btn-warning { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+
+        /* Chat */
+        .chat-container { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); border-radius: 15px; padding: 20px; height: 500px; display: flex; flex-direction: column; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 20px; background: white; border-radius: 10px; margin-bottom: 20px; }
+        .message { margin-bottom: 15px; display: flex; gap: 10px; animation: slideIn 0.3s; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        .message.ai { flex-direction: row; }
+        .message.user { flex-direction: row-reverse; }
+        .message-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+        .message.ai .message-avatar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .message.user .message-avatar { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+        .message-content { background: white; padding: 12px 18px; border-radius: 15px; max-width: 70%; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .message.user .message-content { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .chat-input-area { display: flex; gap: 10px; }
+        .chat-input-area input { flex: 1; padding: 15px; border: 2px solid #ddd; border-radius: 25px; font-size: 1em; }
+
+        /* Assessment Badges & Panels */
+        .assessment-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.1em;
+            color: white;
+            margin: 10px 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .badge-htt { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+        .badge-ht { background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%); }
+        .badge-cht { background: linear-gradient(135deg, #cb2d3e 0%, #ef473a 100%); }
+
+        .evaluation-panel { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); border-radius: 15px; padding: 25px; margin-top: 20px; }
+        .evaluation-result { background: white; border-radius: 10px; padding: 20px; margin-top: 15px; border-left: 5px solid #11998e; }
+        
+        /* Report */
+        .report-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .report-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 15px; text-align: center; }
+        .report-card h3 { font-size: 2.5em; margin-bottom: 10px; }
+        .report-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .report-table th, .report-table td { padding: 15px; text-align: left; border-bottom: 2px solid #ddd; }
+        .report-table th { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        
+        .topic-tags { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+        .topic-tag { padding: 8px 20px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border-radius: 20px; cursor: pointer; transition: all 0.3s; }
+        .topic-tag:hover, .topic-tag.active { transform: scale(1.1); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+
+        .loading { display: none; text-align: center; padding: 20px; }
+        .loading.active { display: block; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .image-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
+        .image-card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.1); transition: transform 0.3s; }
+        .image-card:hover { transform: translateY(-5px); }
+        .image-card img { width: 100%; height: 150px; object-fit: cover; }
+        .image-card-info { padding: 15px; }
+
+        /* FOOTER STYLE - MỚI THÊM */
+        .app-footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            color: black;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 { font-size: 1.8em; }
+            .ai-doctor-container { flex-direction: column; }
+            .nav-tabs { flex-direction: column; }
+            .chat-messages { height: 300px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🏥 HỆ THỐNG HỘI CHẨN AI 🩺</h1>
+            <p>Ứng dụng học tập môn Khoa học lớp 4 - Bộ sách Chân trời sáng tạo</p>
+            <p style="font-size: 0.9em; margin-top: 5px; opacity: 0.9;">Đánh giá theo Thông tư 27/2020/TT-BGDĐT</p>
+        </div>
+
+        <!-- AI Doctor Character -->
+        <div class="ai-doctor-container">
+            <div class="ai-doctor">
+                <div class="ai-doctor-img">👨‍⚕️</div>
+                <h3>Bác Sĩ AI</h3>
+                <p>Trợ lý học tập thông minh</p>
+            </div>
+            <div class="ai-doctor-info">
+                <h4>🎯 Chào mừng đến với Hệ thống Hội chẩn AI!</h4>
+                <p>Tôi là Bác sĩ AI, sẵn sàng hỗ trợ các em học sinh lớp 4 học tập môn Khoa học. Tôi sẽ giúp các em giải quyết các tình huống và đưa ra nhận xét theo 3 mức độ: <strong>Hoàn thành tốt, Hoàn thành, Chưa hoàn thành</strong> để các em tiến bộ mỗi ngày!</p>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showSection('upload')">📤 Upload Ảnh & Tình huống</button>
+            <button class="nav-tab" onclick="showSection('scenarios')">📋 Danh sách Tình huống</button>
+            <button class="nav-tab" onclick="showSection('consultation')">💬 Hội chẩn AI</button>
+            <button class="nav-tab" onclick="showSection('evaluation')">✅ Đánh giá (TT27)</button>
+            <button class="nav-tab" onclick="showSection('report')">📊 Báo cáo & Tổng kết</button>
+        </div>
+
+        <!-- Section 1: Upload -->
+        <div id="upload" class="content-section active">
+            <h2 class="section-title">📤 Upload Ảnh và Tạo Tình huống</h2>
+            
+            <div class="topic-tags">
+                <span class="topic-tag active" onclick="selectTopic('all')">Tất cả</span>
+                <span class="topic-tag" onclick="selectTopic('chat')">Chất</span>
+                <span class="topic-tag" onclick="selectTopic('nangluong')">Năng lượng</span>
+                <span class="topic-tag" onclick="selectTopic('thucvat')">Thực vật & Động vật</span>
+                <span class="topic-tag" onclick="selectTopic('nam')">Nấm</span>
+                <span class="topic-tag" onclick="selectTopic('connguoi')">Con người & Sức khỏe</span>
+                <span class="topic-tag" onclick="selectTopic('sinhvât')">Sinh vật & Môi trường</span>
+            </div>
+
+            <div class="scenario-form">
+                <h3 style="margin-bottom: 20px; color: #2d3436;">🎨 Upload ảnh từ SGK hoặc tạo ảnh minh họa</h3>
+                <div class="upload-area" onclick="document.getElementById('imageUpload').click()">
+                    <div style="font-size: 60px;">📷</div>
+                    <h3>Click để upload ảnh</h3>
+                    <p>Hoặc kéo thả ảnh vào đây</p>
+                    <input type="file" id="imageUpload" accept="image/*" multiple onchange="handleImageUpload(event)">
+                </div>
+                <div class="form-group">
+                    <label>Hoặc tạo ảnh bằng AI (mô tả nội dung):</label>
+                    <textarea id="aiImagePrompt" placeholder="Ví dụ: Vẽ vòng tuần hoàn của nước trong tự nhiên..."></textarea>
+                    <button class="btn btn-primary" onclick="generateAIImage()" style="margin-top: 10px;">✨ Tạo ảnh bằng AI</button>
+                </div>
+                <div id="uploadedImages" class="image-gallery"></div>
+            </div>
+
+            <div class="scenario-form">
+                <h3 style="margin-bottom: 20px; color: #2d3436;">📝 Tạo tình huống học tập</h3>
+                <div class="form-group">
+                    <label>Tiêu đề tình huống:</label>
+                    <input type="text" id="scenarioTitle" placeholder="Ví dụ: Bé An bị đau bụng...">
+                </div>
+                <div class="form-group">
+                    <label>Chủ đề:</label>
+                    <select id="scenarioTopic">
+                        <option value="chat">Chất</option>
+                        <option value="nangluong">Năng lượng</option>
+                        <option value="thucvat">Thực vật & Động vật</option>
+                        <option value="nam">Nấm</option>
+                        <option value="connguoi">Con người & Sức khỏe</option>
+                        <option value="sinhvât">Sinh vật & Môi trường</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Nội dung tình huống:</label>
+                    <textarea id="scenarioContent" placeholder="Mô tả chi tiết tình huống cần học sinh giải quyết..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Mục tiêu học tập:</label>
+                    <input type="text" id="scenarioObjective" placeholder="Học sinh cần đạt được gì sau khi giải quyết tình huống?">
+                </div>
+                <button class="btn btn-success" onclick="saveScenario()">💾 Lưu tình huống</button>
+                <button class="btn btn-warning" onclick="generateAIScenario()" style="margin-left: 10px;">🤖 AI tự tạo tình huống</button>
+            </div>
+        </div>
+
+        <!-- Section 2: Scenarios List -->
+        <div id="scenarios" class="content-section">
+            <h2 class="section-title">📋 Danh sách Tình huống</h2>
+            <div class="topic-tags">
+                <span class="topic-tag active" onclick="filterScenarios('all')">Tất cả</span>
+                <span class="topic-tag" onclick="filterScenarios('chat')">Chất</span>
+                <span class="topic-tag" onclick="filterScenarios('nangluong')">Năng lượng</span>
+                <span class="topic-tag" onclick="filterScenarios('thucvat')">Thực vật & Động vật</span>
+                <span class="topic-tag" onclick="filterScenarios('nam')">Nấm</span>
+                <span class="topic-tag" onclick="filterScenarios('connguoi')">Con người & Sức khỏe</span>
+                <span class="topic-tag" onclick="filterScenarios('sinhvât')">Sinh vật & Môi trường</span>
+            </div>
+            <div id="scenariosList"></div>
+        </div>
+
+        <!-- Section 3: Consultation -->
+        <div id="consultation" class="content-section">
+            <h2 class="section-title">💬 Hội chẩn AI - Chẩn đoán & Xử lý tình huống</h2>
+            
+            <div class="form-group">
+                <label>Chọn tình huống để hội chẩn:</label>
+                <select id="consultationScenario" onchange="loadScenarioForConsultation()">
+                    <option value="">-- Chọn tình huống --</option>
+                </select>
+            </div>
+
+            <div id="selectedScenarioDisplay" style="display: none; background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); padding: 20px; border-radius: 15px; margin-bottom: 20px;">
+                <h3 id="displayScenarioTitle"></h3>
+                <p id="displayScenarioContent"></p>
+                <div id="displayScenarioImages" class="image-gallery" style="margin-top: 15px;"></div>
+            </div>
+
+            <div class="chat-container">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message ai">
+                        <div class="message-avatar">👨‍⚕️</div>
+                        <div class="message-content">
+                            <strong>Bác sĩ AI:</strong> Xin chào! Hãy đưa ra giải pháp của em cho tình huống trên. Em cần chẩn đoán, đề xuất cách xử lý và đưa ra khuyến nghị nhé!
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="chatInput" placeholder="Nhập giải pháp của em..." onkeypress="handleChatKeypress(event)">
+                    <button class="btn btn-primary" onclick="sendMessage()">Gửi</button>
+                    <button class="btn btn-success" onclick="getAIEvaluation()">Đánh giá AI</button>
+                </div>
+            </div>
+
+            <div class="loading" id="aiLoading">
+                <div class="spinner"></div>
+                <p>AI đang phân tích và đánh giá theo Thông tư 27...</p>
+            </div>
+        </div>
+
+        <!-- Section 4: Evaluation (Updated for TT27) -->
+        <div id="evaluation" class="content-section">
+            <h2 class="section-title">✅ Đánh giá & Nhận xét (Theo TT27)</h2>
+            
+            <div id="evaluationContent">
+                <div class="evaluation-panel">
+                    <h3>Kết quả đánh giá từ AI</h3>
+                    <div id="aiEvaluationResult"></div>
+                </div>
+
+                <div class="scenario-form" style="margin-top: 20px;">
+                    <h3>Nhận xét của Giáo viên</h3>
+                    
+                    <div class="form-group">
+                        <label>Mức độ hoàn thành (Theo Thông tư 27):</label>
+                        <select id="teacherLevel">
+                            <option value="HTT">🌟 Hoàn thành tốt (Vượt mong đợi, sáng tạo)</option>
+                            <option value="HT">✅ Hoàn thành (Đạt yêu cầu, cần tư vấn nâng cao)</option>
+                            <option value="CHT">⚠️ Chưa hoàn thành (Cần AI & GV tư vấn thêm)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Nhận xét chi tiết (Khuyến khích):</label>
+                        <textarea id="teacherComment" placeholder="Ghi nhận sự cố gắng, chỉ ra điểm mạnh và điểm cần khắc phục..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Kết luận về cách xử lý tình huống (Chuẩn kiến thức):</label>
+                        <textarea id="teacherConclusion" placeholder="Đưa ra kết luận chính xác về cách xử lý theo sách giáo khoa..."></textarea>
+                    </div>
+
+                    <button class="btn btn-success" onclick="saveTeacherEvaluation()">Lưu nhận xét</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 5: Report -->
+        <div id="report" class="content-section">
+            <h2 class="section-title">📊 Báo cáo & Tổng kết</h2>
+            
+            <div class="report-grid">
+                <div class="report-card">
+                    <h3 id="totalScenarios">0</h3>
+                    <p>Tổng số tình huống</p>
+                </div>
+                <div class="report-card">
+                    <h3 id="totalConsultations">0</h3>
+                    <p>Số lần hội chẩn</p>
+                </div>
+                <div class="report-card" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                    <h3 id="countHTT">0</h3>
+                    <p>Hoàn thành tốt</p>
+                </div>
+                <div class="report-card" style="background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%);">
+                    <h3 id="countHT">0</h3>
+                    <p>Hoàn thành</p>
+                </div>
+                <div class="report-card" style="background: linear-gradient(135deg, #cb2d3e 0%, #ef473a 100%);">
+                    <h3 id="countCHT">0</h3>
+                    <p>Chưa hoàn thành</p>
+                </div>
+            </div>
+
+            <div style="margin: 30px 0;">
+                <h3 style="margin-bottom: 20px; color: #667eea;">📈 Thống kê theo chủ đề</h3>
+                <div id="topicStats"></div>
+            </div>
+
+            <div style="margin: 30px 0;">
+                <h3 style="margin-bottom: 20px; color: #667eea;">📝 Lịch sử đánh giá</h3>
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Tình huống</th>
+                            <th>Chủ đề</th>
+                            <th>Đánh giá AI</th>
+                            <th>Đánh giá GV</th>
+                            <th>Ngày</th>
+                        </tr>
+                    </thead>
+                    <tbody id="evaluationsTable"></tbody>
+                </table>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn btn-primary" onclick="exportReport()" style="margin: 5px;">📥 Xuất báo cáo</button>
+                <button class="btn btn-success" onclick="shareToWeb()" style="margin: 5px;">🌐 Chia sẻ lên Web</button>
+                <button class="btn btn-warning" onclick="window.print()" style="margin: 5px;">🖨️ In báo cáo</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER - BẢN QUYỀN -->
+    <div class="app-footer">
+        App được tạo và phát triển bởi thầy Nguyễn Đức Duy, trường tiểu học Nguyễn Bỉnh Khiêm, phường Mỹ ngãi, Đồng tháp. tháng 09/2025
+    </div>
+
+    <script>
+        // Global Data Storage
+        let appData = {
+            scenarios: [],
+            images: [],
+            consultations: [],
+            evaluations: [],
+            currentScenario: null,
+            currentTopic: 'all'
+        };
+
+        const topicNames = {
+            'chat': 'Chất',
+            'nangluong': 'Năng lượng',
+            'thucvat': 'Thực vật & Động vật',
+            'nam': 'Nấm',
+            'connguoi': 'Con người & Sức khỏe',
+            'sinhvât': 'Sinh vật & Môi trường'
+        };
+
+        // Initialize
+        window.onload = function() {
+            loadData();
+            renderScenarios();
+            updateConsultationDropdown();
+            updateReport();
+        };
+
+        // Navigation
+        function showSection(sectionId) {
+            document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            event.target.classList.add('active');
+            if (sectionId === 'scenarios') renderScenarios();
+            if (sectionId === 'report') updateReport();
+        }
+
+        function selectTopic(topic) {
+            appData.currentTopic = topic;
+            document.querySelectorAll('#upload .topic-tag').forEach(tag => tag.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // Image Upload
+        function handleImageUpload(event) {
+            const files = event.target.files;
+            for (let file of files) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageData = {
+                        id: Date.now() + Math.random(),
+                        src: e.target.result,
+                        name: file.name,
+                        topic: appData.currentTopic,
+                        date: new Date().toISOString()
+                    };
+                    appData.images.push(imageData);
+                    displayUploadedImages();
+                    saveData();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function displayUploadedImages() {
+            const container = document.getElementById('uploadedImages');
+            container.innerHTML = '';
+            appData.images.forEach(img => {
+                const card = document.createElement('div');
+                card.className = 'image-card';
+                card.innerHTML = `
+                    <img src="${img.src}" alt="${img.name}">
+                    <div class="image-card-info">
+                        <h4>${img.name}</h4>
+                        <p>${topicNames[img.topic] || 'Chung'}</p>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function generateAIImage() {
+            const prompt = document.getElementById('aiImagePrompt').value;
+            if (!prompt) { alert('Vui lòng nhập mô tả để tạo ảnh!'); return; }
+            showLoading(true);
+            setTimeout(() => {
+                const mockImage = {
+                    id: Date.now(),
+                    src: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzY2NzVlYSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+4oCcQUkgR2VuZXJhdGVk4oCdPC90ZXh0Pjwvc3ZnPg==',
+                    name: 'AI Generated - ' + prompt.substring(0, 30),
+                    topic: appData.currentTopic,
+                    date: new Date().toISOString()
+                };
+                appData.images.push(mockImage);
+                displayUploadedImages();
+                showLoading(false);
+                alert('Đã tạo ảnh thành công!');
+            }, 2000);
+        }
+
+        // Scenario Management
+        function saveScenario() {
+            const title = document.getElementById('scenarioTitle').value;
+            const topic = document.getElementById('scenarioTopic').value;
+            const content = document.getElementById('scenarioContent').value;
+            const objective = document.getElementById('scenarioObjective').value;
+
+            if (!title || !content) { alert('Vui lòng nhập đầy đủ thông tin!'); return; }
+
+            const scenario = {
+                id: Date.now(),
+                title, topic, content, objective,
+                images: [],
+                date: new Date().toISOString(),
+                consultations: 0
+            };
+
+            appData.scenarios.push(scenario);
+            saveData();
+            alert('Đã lưu tình huống thành công!');
+            clearScenarioForm();
+            renderScenarios();
+            updateConsultationDropdown();
+        }
+
+        function clearScenarioForm() {
+            document.getElementById('scenarioTitle').value = '';
+            document.getElementById('scenarioContent').value = '';
+            document.getElementById('scenarioObjective').value = '';
+        }
+
+        function generateAIScenario() {
+            const topic = document.getElementById('scenarioTopic').value;
+            const sampleScenarios = {
+                'chat': { title: 'Nước bị ô nhiễm', content: 'Ở làng em, nguồn nước sinh hoạt bị ô nhiễm do nhà máy xả thải. Nhiều người trong làng bị đau bụng. Em hãy đề xuất cách xử lý tình huống này.', objective: 'Hiểu về tính chất của nước và cách bảo vệ nguồn nước' },
+                'nangluong': { title: 'Tiết kiệm điện', content: 'Gia đình bạn Nam mỗi tháng phải trả tiền điện rất cao. Em hãy giúp bạn Nam tìm cách tiết kiệm điện trong sinh hoạt hàng ngày.', objective: 'Nhận biết các cách sử dụng năng lượng tiết kiệm' },
+                'thucvat': { title: 'Cây không phát triển', content: 'Bạn Lan trồng một cây hoa hồng nhưng sau 2 tuần cây vẫn không phát triển, lá bị vàng. Em hãy chẩn đoán nguyên nhân và đề xuất cách chăm sóc.', objective: 'Hiểu về nhu cầu sống của thực vật' },
+                'nam': { title: 'Nấm mốc trên bánh mì', content: 'Bạn Hùng để quên ổ bánh mì trong cặp sách. Sau 3 ngày, bánh mì xuất hiện những chấm xanh đen. Em hãy giải thích hiện tượng này và cách phòng tránh.', objective: 'Hiểu về điều kiện phát triển của nấm' },
+                'connguoi': { title: 'Ăn uống không lành mạnh', content: 'Bạn Minh thích ăn đồ ăn nhanh, uống nước ngọt và lười ăn rau. Gần đây bạn thường xuyên mệt mỏi, khó tập trung. Em hãy tư vấn cho bạn Minh.', objective: 'Nhận biết chế độ ăn uống lành mạnh' },
+                'sinhvât': { title: 'Rác thải trong trường', content: 'Sân trường em sau giờ ra chơi thường có nhiều rác. Điều này ảnh hưởng đến môi trường và sức khỏe. Em hãy đề xuất giải pháp.', objective: 'Hiểu về bảo vệ môi trường sống' }
+            };
+
+            const scenario = sampleScenarios[topic];
+            document.getElementById('scenarioTitle').value = scenario.title;
+            document.getElementById('scenarioContent').value = scenario.content;
+            document.getElementById('scenarioObjective').value = scenario.objective;
+            alert('Đã tạo tình huống mẫu! Giáo viên có thể chỉnh sửa thêm.');
+        }
+
+        function renderScenarios() {
+            const container = document.getElementById('scenariosList');
+            container.innerHTML = '';
+            const filtered = appData.currentTopic === 'all' ? appData.scenarios : appData.scenarios.filter(s => s.topic === appData.currentTopic);
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<p style="text-align: center; padding: 40px; color: #999;">Chưa có tình huống nào. Hãy tạo tình huống mới!</p>';
+                return;
+            }
+
+            filtered.forEach(scenario => {
+                const card = document.createElement('div');
+                card.className = 'image-card';
+                card.style.marginBottom = '20px';
+                card.innerHTML = `
+                    <div class="image-card-info">
+                        <h4>${scenario.title}</h4>
+                        <p><strong>Chủ đề:</strong> ${topicNames[scenario.topic]}</p>
+                        <p><strong>Nội dung:</strong> ${scenario.content.substring(0, 150)}...</p>
+                        <p><strong>Mục tiêu:</strong> ${scenario.objective}</p>
+                        <p><strong>Số lần hội chẩn:</strong> ${scenario.consultations}</p>
+                        <button class="btn btn-primary" onclick="selectScenarioForConsultation(${scenario.id})" style="margin-top: 10px;">💬 Hội chẩn ngay</button>
+                        <button class="btn btn-warning" onclick="deleteScenario(${scenario.id})" style="margin-top: 10px; margin-left: 10px;">🗑️ Xóa</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function filterScenarios(topic) {
+            appData.currentTopic = topic;
+            document.querySelectorAll('#scenarios .topic-tag').forEach(tag => tag.classList.remove('active'));
+            event.target.classList.add('active');
+            renderScenarios();
+        }
+
+        function deleteScenario(id) {
+            if (confirm('Bạn có chắc muốn xóa tình huống này?')) {
+                appData.scenarios = appData.scenarios.filter(s => s.id !== id);
+                saveData();
+                renderScenarios();
+                updateConsultationDropdown();
+            }
+        }
+
+        // Consultation Functions
+        function updateConsultationDropdown() {
+            const select = document.getElementById('consultationScenario');
+            select.innerHTML = '<option value="">-- Chọn tình huống --</option>';
+            appData.scenarios.forEach(scenario => {
+                const option = document.createElement('option');
+                option.value = scenario.id;
+                option.textContent = scenario.title;
+                select.appendChild(option);
+            });
+        }
+
+        function loadScenarioForConsultation() {
+            const id = parseInt(document.getElementById('consultationScenario').value);
+            const scenario = appData.scenarios.find(s => s.id === id);
+            
+            if (scenario) {
+                appData.currentScenario = scenario;
+                document.getElementById('displayScenarioTitle').textContent = scenario.title;
+                document.getElementById('displayScenarioContent').textContent = scenario.content;
+                document.getElementById('selectedScenarioDisplay').style.display = 'block';
+                
+                document.getElementById('chatMessages').innerHTML = `
+                    <div class="message ai">
+                        <div class="message-avatar">👨‍⚕️</div>
+                        <div class="message-content">
+                            <strong>Bác sĩ AI:</strong> Xin chào! Hãy đưa ra giải pháp của em cho tình huống "${scenario.title}". Em cần chẩn đoán, đề xuất cách xử lý và đưa ra khuyến nghị nhé!
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function selectScenarioForConsultation(id) {
+            document.getElementById('consultationScenario').value = id;
+            showSection('consultation');
+            document.querySelector('.nav-tab:nth-child(3)').classList.add('active');
+            loadScenarioForConsultation();
+        }
+
+        function handleChatKeypress(event) {
+            if (event.key === 'Enter') sendMessage();
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+            if (!appData.currentScenario) { alert('Vui lòng chọn tình huống trước!'); return; }
+
+            addMessage('user', message);
+            input.value = '';
+
+            setTimeout(() => {
+                const aiResponse = generateAIResponse(message);
+                addMessage('ai', aiResponse);
+            }, 1000);
+        }
+
+        function addMessage(type, content) {
+            const container = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            const avatar = type === 'ai' ? '👨‍⚕️' : '👨‍🎓';
+            const name = type === 'ai' ? 'Bác sĩ AI' : 'Học sinh';
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${avatar}</div>
+                <div class="message-content">
+                    <strong>${name}:</strong> ${content}
+                </div>
+            `;
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function generateAIResponse(userMessage) {
+            const responses = [
+                "Em đã đưa ra chẩn đoán rất tốt! Theo em, cách xử lý này có phù hợp với tình huống không?",
+                "Ý tưởng của em rất sáng tạo! Em có thể giải thích thêm về lý do chọn cách xử lý này không?",
+                "Em đã nghĩ đến khía cạnh quan trọng này! Còn yếu tố nào khác em cần xem xét không?",
+                "Rất tốt! Em hãy đề xuất thêm các khuyến nghị để phòng tránh tình huống tương tự nhé!"
+            ];
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+
+        // NEW: AI Evaluation Logic based on TT27
+        function getAIEvaluation() {
+            if (!appData.currentScenario) { alert('Vui lòng chọn tình huống trước!'); return; }
+            showLoading(true);
+
+            setTimeout(() => {
+                // Simulate AI Analysis based on chat history length/quality
+                const chatHistory = document.getElementById('chatMessages').innerText;
+                const wordCount = chatHistory.split(' ').length;
+                
+                let level = 'HT'; // Default
+                let strengths = [];
+                let weaknesses = [];
+                let recommendations = [];
+
+                // Simple logic simulation
+                if (wordCount > 50) {
+                    level = 'HTT';
+                    strengths = ["Học sinh phân tích tình huống rất chi tiết và logic.", "Đề xuất giải pháp sáng tạo và khả thi.", "Thể hiện hiểu biết sâu về kiến thức bài học."];
+                    weaknesses = ["Có thể bổ sung thêm các biện pháp dự phòng."];
+                    recommendations = ["Phát huy tốt năng lực giải quyết vấn đề.", "Có thể trở thành 'Bác sĩ nhí' hướng dẫn các bạn khác."];
+                } else if (wordCount > 20) {
+                    level = 'HT';
+                    strengths = ["Học sinh đã xác định đúng vấn đề chính.", "Đề xuất giải pháp phù hợp với tình huống."];
+                    weaknesses = ["Giải pháp còn chung chung, chưa cụ thể.", "Chưa nêu rõ được nguyên nhân sâu xa."];
+                    recommendations = ["Cần tư vấn thêm để làm rõ các bước thực hiện.", "Nên tìm hiểu thêm ví dụ thực tế."];
+                } else {
+                    level = 'CHT';
+                    strengths = ["Học sinh đã cố gắng đưa ra ý kiến."];
+                    weaknesses = ["Giải pháp chưa rõ ràng hoặc chưa đúng trọng tâm.", "Chưa hiểu rõ yêu cầu của tình huống."];
+                    recommendations = ["Cần AI và Giáo viên hướng dẫn lại kiến thức cơ bản.", "Cần đọc lại phần bài học liên quan."];
+                }
+
+                const evaluation = {
+                    scenarioId: appData.currentScenario.id,
+                    scenarioTitle: appData.currentScenario.title,
+                    topic: appData.currentScenario.topic,
+                    aiLevel: level, // HTT, HT, CHT
+                    strengths, weaknesses, recommendations,
+                    date: new Date().toISOString()
+                };
+
+                appData.evaluations.push(evaluation);
+                appData.currentScenario.consultations++;
+                
+                displayAIEvaluation(evaluation);
+                showLoading(false);
+                saveData();
+                updateConsultationDropdown();
+                
+                document.querySelector('.nav-tab:nth-child(4)').click();
+            }, 2000);
+        }
+
+        function displayAIEvaluation(evaluation) {
+            const container = document.getElementById('aiEvaluationResult');
+            
+            let badgeClass = '';
+            let badgeText = '';
+            let borderColor = '';
+
+            if (evaluation.aiLevel === 'HTT') {
+                badgeClass = 'badge-htt';
+                badgeText = '🌟 Hoàn thành tốt';
+                borderColor = '#11998e';
+            } else if (evaluation.aiLevel === 'HT') {
+                badgeClass = 'badge-ht';
+                badgeText = '✅ Hoàn thành';
+                borderColor = '#2193b0';
+            } else {
+                badgeClass = 'badge-cht';
+                badgeText = '⚠️ Chưa hoàn thành';
+                borderColor = '#cb2d3e';
+            }
+
+            container.innerHTML = `
+                <div class="evaluation-result" style="border-left-color: ${borderColor}">
+                    <h4>📊 Kết quả đánh giá</h4>
+                    <p><strong>Tình huống:</strong> ${evaluation.scenarioTitle}</p>
+                    <p><strong>Chủ đề:</strong> ${topicNames[evaluation.topic]}</p>
+                    <div class="assessment-badge ${badgeClass}">${badgeText}</div>
+                    
+                    <h4 style="margin-top: 20px; color: #11998e;">✅ Điểm mạnh:</h4>
+                    <ul>${evaluation.strengths.map(s => `<li>${s}</li>`).join('')}</ul>
+                    
+                    <h4 style="margin-top: 15px; color: #e17055;">⚠️ Điểm cần cải thiện:</h4>
+                    <ul>${evaluation.weaknesses.map(w => `<li>${w}</li>`).join('')}</ul>
+                    
+                    <h4 style="margin-top: 15px; color: #0984e3;">💡 Khuyến nghị:</h4>
+                    <ul>${evaluation.recommendations.map(r => `<li>${r}</li>`).join('')}</ul>
+                </div>
+            `;
+        }
+
+        function saveTeacherEvaluation() {
+            const level = document.getElementById('teacherLevel').value;
+            const comment = document.getElementById('teacherComment').value;
+            const conclusion = document.getElementById('teacherConclusion').value;
+
+            if (!comment || !conclusion) { alert('Vui lòng nhập đầy đủ nhận xét và kết luận!'); return; }
+
+            const lastEvaluation = appData.evaluations[appData.evaluations.length - 1];
+            if (lastEvaluation) {
+                lastEvaluation.teacherLevel = level;
+                lastEvaluation.teacherComment = comment;
+                lastEvaluation.teacherConclusion = conclusion;
+                lastEvaluation.teacherDate = new Date().toISOString();
+                
+                saveData();
+                alert('Đã lưu nhận xét của giáo viên theo quy định!');
+                updateReport();
+            } else {
+                alert('Chưa có đánh giá AI nào để nhận xét!');
+            }
+        }
+
+        // Report Functions
+        function updateReport() {
+            document.getElementById('totalScenarios').textContent = appData.scenarios.length;
+            document.getElementById('totalConsultations').textContent = appData.evaluations.length;
+            
+            // Count levels
+            const counts = { HTT: 0, HT: 0, CHT: 0 };
+            appData.evaluations.forEach(e => {
+                if (e.teacherLevel) counts[e.teacherLevel]++;
+                else if (e.aiLevel) counts[e.aiLevel]++; // Fallback to AI level if teacher hasn't graded
+            });
+
+            document.getElementById('countHTT').textContent = counts.HTT;
+            document.getElementById('countHT').textContent = counts.HT;
+            document.getElementById('countCHT').textContent = counts.CHT;
+            
+            // Topic stats
+            const topicCounts = {};
+            appData.scenarios.forEach(s => {
+                topicCounts[s.topic] = (topicCounts[s.topic] || 0) + 1;
+            });
+            
+            const topicStatsContainer = document.getElementById('topicStats');
+            topicStatsContainer.innerHTML = '';
+            Object.entries(topicCounts).forEach(([topic, count]) => {
+                const stat = document.createElement('div');
+                stat.style.cssText = 'background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);';
+                stat.innerHTML = `
+                    <strong>${topicNames[topic]}:</strong> ${count} tình huống
+                    <div style="background: #ddd; height: 20px; border-radius: 10px; margin-top: 5px;">
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 100%; width: ${(count / appData.scenarios.length) * 100}%; border-radius: 10px;"></div>
+                    </div>
+                `;
+                topicStatsContainer.appendChild(stat);
+            });
+            
+            // Evaluations table
+            const tableBody = document.getElementById('evaluationsTable');
+            tableBody.innerHTML = '';
+            appData.evaluations.slice().reverse().forEach(eval => {
+                const levelDisplay = eval.teacherLevel ? 
+                    `<span class="assessment-badge ${eval.teacherLevel === 'HTT' ? 'badge-htt' : (eval.teacherLevel === 'HT' ? 'badge-ht' : 'badge-cht')}">${eval.teacherLevel}</span>` : 
+                    '<span style="color:#999">Chờ GV đánh giá</span>';
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${eval.scenarioTitle}</td>
+                    <td>${topicNames[eval.topic]}</td>
+                    <td>${eval.aiLevel}</td>
+                    <td>${levelDisplay}</td>
+                    <td>${new Date(eval.date).toLocaleDateString('vi-VN')}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function exportReport() { alert('Chức năng xuất PDF đang được phát triển. Bạn có thể sử dụng chức năng In để lưu thành PDF!'); }
+        function shareToWeb() {
+            const shareUrl = window.location.href;
+            prompt('Chia sẻ liên kết này:', shareUrl);
+            if (navigator.share) {
+                navigator.share({ title: 'Hệ thống Hội chẩn AI', text: 'Ứng dụng học tập Khoa học lớp 4', url: shareUrl }).catch(err => console.log('Error sharing:', err));
+            }
+        }
+
+        function showLoading(show) { document.getElementById('aiLoading').classList.toggle('active', show); }
+        function saveData() { localStorage.setItem('aiConsultationApp_TT27', JSON.stringify(appData)); }
+        function loadData() {
+            const saved = localStorage.getItem('aiConsultationApp_TT27');
+            if (saved) { appData = JSON.parse(saved); displayUploadedImages(); }
+        }
+
+        // Drag and drop
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadArea = document.querySelector('.upload-area');
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, preventDefaults, false);
+            });
+            function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, highlight, false);
+            });
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, unhighlight, false);
+            });
+            function highlight(e) { uploadArea.style.borderColor = '#f5576c'; uploadArea.style.background = 'linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%)'; }
+            function unhighlight(e) { uploadArea.style.borderColor = '#667eea'; uploadArea.style.background = 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)'; }
+            uploadArea.addEventListener('drop', handleDrop, false);
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                document.getElementById('imageUpload').files = files;
+                handleImageUpload({ target: { files: files } });
+            }
+        });
+    </script>
+</body>
+</html>
